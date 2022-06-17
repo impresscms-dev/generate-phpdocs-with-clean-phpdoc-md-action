@@ -1,0 +1,54 @@
+name: 'Generate PHP docs with clean/phpdoc-md'
+description: 'GitHub action to generate PHP project documentation in MarkDown format. Based on clean/phpdoc-md library.'
+
+branding:
+  icon: book
+  color: blue
+  
+inputs:
+  output_path:
+    description: "Path where to write generated documentation"
+    required: true
+  class_root_namespace:
+    description: "Root class namespace"
+    required: true
+  included_classes:
+    description: "Included classes list (supports glob style wildcards syntax; each line means one rule)"
+    required: true    
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Creating tmp folder    
+      run: |
+        rm -rf /tmp/data || true
+        mkdir -p /tmp/data
+      shell: bash
+      
+    - name: Copying current project to tmp folder...
+      run: cp -R ./* /tmp/data/
+      shell: bash
+      
+    - name: Getting files list...
+      uses: impresscms-dev/generate-php-project-classes-list-file-action@v0.1
+      with:
+        output_file: /tmp/php-classes.lst
+        
+    - name: Generating generator config...
+      run: php ${{ github.action_path }}/generate-config.php "/tmp/data/.phpdoc-md" "/tmp/php-classes.lst" "{{ input.class_root_namespace }}" "{{ input.output_path }}"
+      shell: bash
+      
+    - name: Including documentation generator...
+      run: composer require --no-plugins --ignore-platform-reqs --no-scripts --dev 'clean/phpdoc-md=^0.19'
+      working-directory: /tmp/data/
+      shell: bash
+      
+    - name: Generating documentation...
+      run: composer exec phpdoc-md
+      working-directory: /tmp/data/
+      shell: bash
+      
+    - name: Deleting tmp folder...
+      run:  rm -rf /tmp/data || true
+      shell: bash
+      continue-on-error: true
