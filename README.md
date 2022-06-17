@@ -1,7 +1,7 @@
 [![License](https://img.shields.io/github/license/impresscms-dev/generate-phpdocs-with-clean-phpdoc-md-action.svg)](LICENSE)
 [![GitHub release](https://img.shields.io/github/release/impresscms-dev/generate-phpdocs-with-clean-phpdoc-md-action.svg)](https://github.com/impresscms-dev/generate-php-project-classes-list-file-action/releases)
 
-# Generate PHP docs width clean/phpdoc-md (GitHub action)
+# Generate PHP docs with clean/phpdoc-md
 
 GitHub action to generate PHP project documentation in [MarkDown](https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax) format. Based on [clean/phpdoc-md](https://github.com/clean/phpdoc-md) library.
 
