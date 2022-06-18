@@ -19,51 +19,62 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - name: Creating tmp folder
+    - name: Setting env variables...
       run: |
-        rm -rf /tmp/data || true
-        mkdir -p /tmp/data
+        GENERATOR_TMP_SUFIX=${{ github.sha }}-${{ github.run_id	}}-${{ github.github.run_attempt }}
+        GENERATOR_TMP_PATH="${{ runner.temp }}"
+        GENERATOR_TMP_FILES_PATH=$GENERATOR_TMP_PATH/files-$GENERATOR_TMP_SUFIX
+        echo "COPY_DATA_PATH=$GENERATOR_TMP_PATH/data-$GENERATOR_TMP_SUFIX" >> $GITHUB_ENV
+        echo "GENERATOR_TMP_FILES_PATH=$GENERATOR_TMP_FILES_PATH" >> $GITHUB_ENV
+        echo "RULES_FILE=$GENERATOR_TMP_FILES_PATH/filtering-rules.lst" >> $GITHUB_ENV
+        echo "PHP_CLASSES_ORIG_FILE=$GENERATOR_TMP_FILES_PATH/php-classes.original.lst" >> $GITHUB_ENV
+        echo "PHP_CLASSES_FILTERED_FILE=$GENERATOR_TMP_FILES_PATH/php-classes.filtered.lst" >> $GITHUB_ENV       
+  
+    - name: Creating tmp folders
+      run: |
+        rm -rf ${{ env.COPY_DATA_PATH }} || true
+        mkdir -p ${{ env.COPY_DATA_PATH }}
+        rm -rf ${{ env.GENERATOR_TMP_FILES_PATH }} || true
+        mkdir -p ${{ env.GENERATOR_TMP_FILES_PATH }}
       shell: bash
 
     - name: Copying current project to tmp folder...
-      run: cp -R ./* /tmp/data/
+      run: cp -R ./* ${{ env.COPY_DATA_PATH }}/
       shell: bash
 
     - name: Getting PHP class list...
       uses: impresscms-dev/generate-php-project-classes-list-file-action@v0.1
       with:
-        output_file: /tmp/php-classes.original.lst
+        output_file: ${{ env.PHP_CLASSES_ORIG_FILE }}
 
     - name: Generating temp filtering rules file...
       uses: DamianReeves/write-file-action@v1.0
       with:
-        path: /tmp/filtering-rules.lst
-        contents: "{{ input.included_classes }}"
+        path: ${{ env.PHP_CLASSES_ORIG_FILE }}
+        contents: "${{ inputs.included_classes }}"
         write-mode: overwrite
 
     - name: Filtering PHP classes list...
       uses: impresscms-dev/filter-php-class-list-with-glob-like-rules-action@v0.1
       with:
-        rules_file: /tmp/filtering-rules.lst
-        input_file: /tmp/php-classes.original.lst
-        output_file: /tmp/php-classes.filtered.lst
+        rules_file: ${{ env.RULES_FILE }}
+        input_file: ${{ env.PHP_CLASSES_ORIG_FILE }}
+        output_file: ${{ env.PHP_CLASSES_FILTERED_FILE }}
 
     - name: Generating generator config...
-      run: php ${{ github.action_path }}/generate-config.php "/tmp/data/.phpdoc-md" "/tmp/php-classes.filtered.lst" "{{ input.class_root_namespace }}" "{{ input.output_path }}"
+      run: php ${{ github.action_path }}/generate-config.php "${{ env.COPY_DATA_PATH }}/.phpdoc-md" "${{ env.PHP_CLASSES_FILTERED_FILE }}" "${{ inputs.class_root_namespace }}" "${{ inputs.output_path }}"
       shell: bash
 
     - name: Including documentation generator...
-      run: composer require --no-plugins --ignore-platform-reqs --no-scripts --working-dir=/tmp/data/ --dev 'clean/phpdoc-md=^0.19'
+      run: composer require --no-plugins --ignore-platform-reqs --no-scripts --working-dir=${{ env.COPY_DATA_PATH }}/ --dev 'clean/phpdoc-md=^0.19'
       shell: bash
 
     - name: Generating documentation...
-      run: composer exec --working-dir=/tmp/data/ phpdoc-md
+      run: composer exec --working-dir=${{ env.COPY_DATA_PATH }}/ phpdoc-md
       shell: bash
 
     - name: Deleting tmp data...
       run: |
-        rm -rf /tmp/data || true
-        rm -rf /tmp/filtering-rules.lst || true
-        rm -rf /tmp/php-classes.original.lst || true
-        rm -rf /tmp/php-classes.filtered.lst || true
+        rm -rf ${{ env.COPY_DATA_PATH }} || true
+        rm -rf ${{ env.GENERATOR_TMP_FILES_PATH }} || true
       shell: bash
