@@ -21,5 +21,5 @@ file_put_contents(
       'classes' => file($outputFile),
     ],  
     true
-   ) . ';' ;
+   ) . ';'
 );
