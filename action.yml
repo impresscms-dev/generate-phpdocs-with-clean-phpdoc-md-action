@@ -29,13 +29,27 @@ runs:
       run: cp -R ./* /tmp/data/
       shell: bash
       
-    - name: Getting files list...
+    - name: Getting PHP class list...
       uses: impresscms-dev/generate-php-project-classes-list-file-action@v0.1
       with:
-        output_file: /tmp/php-classes.lst
+        output_file: /tmp/php-classes.original.lst
+        
+    - name: Generating temp filtering rules file...
+      uses: DamianReeves/write-file-action@v1.0
+      with:
+       path: /tmp/filtering-rules.lst
+       contents: "{{ input.included_classes }}"
+       write-mode: overwrite
+       
+      - name: Filtering PHP classes list...
+        uses: impresscms-dev/filter-php-class-list-with-glob-like-rules-action@v0.1
+        with:
+          rules_file: /tmp/filtering-rules.lst
+          input_file: /tmp/php-classes.original.lst
+          output_file: /tmp/php-classes.filtered.lst
         
     - name: Generating generator config...
-      run: php ${{ github.action_path }}/generate-config.php "/tmp/data/.phpdoc-md" "/tmp/php-classes.lst" "{{ input.class_root_namespace }}" "{{ input.output_path }}"
+      run: php ${{ github.action_path }}/generate-config.php "/tmp/data/.phpdoc-md" "/tmp/php-classes.filtered.lst" "{{ input.class_root_namespace }}" "{{ input.output_path }}"
       shell: bash
       
     - name: Including documentation generator...
@@ -48,7 +62,10 @@ runs:
       working-directory: /tmp/data/
       shell: bash
       
-    - name: Deleting tmp folder...
-      run:  rm -rf /tmp/data || true
+    - name: Deleting tmp data...
+      run: |
+        rm -rf /tmp/data || true
+        rm -rf /tmp/filtering-rules.lst || true
+        rm -rf /tmp/php-classes.original.lst || true
+        rm -rf /tmp/php-classes.filtered.lst || true
       shell: bash
-      continue-on-error: true
