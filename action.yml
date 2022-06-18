@@ -51,7 +51,7 @@ runs:
     - name: Generating temp filtering rules file...
       uses: DamianReeves/write-file-action@v1.0
       with:
-        path: ${{ env.PHP_CLASSES_ORIG_FILE }}
+        path: ${{ env.RULES_FILE }}
         contents: "${{ inputs.included_classes }}"
         write-mode: overwrite
 
