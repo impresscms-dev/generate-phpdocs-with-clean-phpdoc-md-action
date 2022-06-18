@@ -4,7 +4,7 @@ description: 'GitHub action to generate PHP project documentation in MarkDown fo
 branding:
   icon: book
   color: blue
-  
+
 inputs:
   output_path:
     description: "Path where to write generated documentation"
@@ -14,54 +14,52 @@ inputs:
     required: true
   included_classes:
     description: "Included classes list (supports glob style wildcards syntax; each line means one rule)"
-    required: true    
+    required: true
 
 runs:
   using: 'composite'
   steps:
-    - name: Creating tmp folder    
+    - name: Creating tmp folder
       run: |
         rm -rf /tmp/data || true
         mkdir -p /tmp/data
       shell: bash
-      
+
     - name: Copying current project to tmp folder...
       run: cp -R ./* /tmp/data/
       shell: bash
-      
+
     - name: Getting PHP class list...
       uses: impresscms-dev/generate-php-project-classes-list-file-action@v0.1
       with:
         output_file: /tmp/php-classes.original.lst
-        
+
     - name: Generating temp filtering rules file...
       uses: DamianReeves/write-file-action@v1.0
       with:
-       path: /tmp/filtering-rules.lst
-       contents: "{{ input.included_classes }}"
-       write-mode: overwrite
-       
-      - name: Filtering PHP classes list...
-        uses: impresscms-dev/filter-php-class-list-with-glob-like-rules-action@v0.1
-        with:
-          rules_file: /tmp/filtering-rules.lst
-          input_file: /tmp/php-classes.original.lst
-          output_file: /tmp/php-classes.filtered.lst
-        
+        path: /tmp/filtering-rules.lst
+        contents: "{{ input.included_classes }}"
+        write-mode: overwrite
+
+    - name: Filtering PHP classes list...
+      uses: impresscms-dev/filter-php-class-list-with-glob-like-rules-action@v0.1
+      with:
+        rules_file: /tmp/filtering-rules.lst
+        input_file: /tmp/php-classes.original.lst
+        output_file: /tmp/php-classes.filtered.lst
+
     - name: Generating generator config...
       run: php ${{ github.action_path }}/generate-config.php "/tmp/data/.phpdoc-md" "/tmp/php-classes.filtered.lst" "{{ input.class_root_namespace }}" "{{ input.output_path }}"
       shell: bash
-      
+
     - name: Including documentation generator...
-      run: composer require --no-plugins --ignore-platform-reqs --no-scripts --dev 'clean/phpdoc-md=^0.19'
-      working-directory: /tmp/data/
+      run: composer require --no-plugins --ignore-platform-reqs --no-scripts --working-dir=/tmp/data/ --dev 'clean/phpdoc-md=^0.19'
       shell: bash
-      
+
     - name: Generating documentation...
-      run: composer exec phpdoc-md
-      working-directory: /tmp/data/
+      run: composer exec --working-dir=/tmp/data/ phpdoc-md
       shell: bash
-      
+
     - name: Deleting tmp data...
       run: |
         rm -rf /tmp/data || true
