@@ -36,8 +36,8 @@ jobs:
       - name: Generating documentation...
         uses: impresscms-dev/generate-phpdocs-with-clean-phpdoc-md-action@v0.1
         with:
-          class_root_namespace: ImpressCMS\\
-          included_classes: ImpressCMS\\**
+          class_root_namespace: ImpressCMS\
+          included_classes: ImpressCMS\**
           output_path: ./docs/
           
       - uses: actions/upload-artifact@v3
