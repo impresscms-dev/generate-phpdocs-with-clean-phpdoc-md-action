@@ -63,7 +63,12 @@ runs:
         output_file: ${{ env.PHP_CLASSES_FILTERED_FILE }}
 
     - name: Generating generator config...
-      run: php ${{ github.action_path }}/generate-config.php "${{ env.COPY_DATA_PATH }}/.phpdoc-md" "${{ env.PHP_CLASSES_FILTERED_FILE }}" "${{ inputs.class_root_namespace }}" "${{ inputs.output_path }}"
+      env:
+        ACTION_PATH: ${{ github.action_path }}
+        PHPDOCMD_FILE: ${{ env.$COPY_DATA_PATH }}/.phpdoc-md
+        CLASS_ROOT_NAMESPACE: ${{ inputs.class_root_namespace }}
+        DOCS_PATH: ${{ inputs.output_path }}
+      run: php $ACTION_PATH/generate-config.php "$PHPDOCMD_FILE" "$PHP_CLASSES_FILTERED_FILE" "$CLASS_ROOT_NAMESPACE" "$DOCS_PATH"
       shell: bash
 
     - name: Including documentation generator...
