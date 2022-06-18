@@ -28,7 +28,8 @@ runs:
         echo "GENERATOR_TMP_FILES_PATH=$GENERATOR_TMP_FILES_PATH" >> $GITHUB_ENV
         echo "RULES_FILE=$GENERATOR_TMP_FILES_PATH/filtering-rules.lst" >> $GITHUB_ENV
         echo "PHP_CLASSES_ORIG_FILE=$GENERATOR_TMP_FILES_PATH/php-classes.original.lst" >> $GITHUB_ENV
-        echo "PHP_CLASSES_FILTERED_FILE=$GENERATOR_TMP_FILES_PATH/php-classes.filtered.lst" >> $GITHUB_ENV       
+        echo "PHP_CLASSES_FILTERED_FILE=$GENERATOR_TMP_FILES_PATH/php-classes.filtered.lst" >> $GITHUB_ENV
+      shell: bash        
   
     - name: Creating tmp folders
       run: |
