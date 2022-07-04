@@ -18,7 +18,7 @@ file_put_contents(
       'rootNamespace' => $rootNamespace,
       'destDirectory' => $outputDocsPath,
       'format' => 'github',
-      'classes' => file($classesListFile),
+      'classes' => array_map('trim', file($classesListFile)),
     ],  
     true
    ) . ';'
