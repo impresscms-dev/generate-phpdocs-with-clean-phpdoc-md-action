@@ -70,7 +70,6 @@ runs:
         DOCS_PATH: ${{ inputs.output_path }}
       run: |
         php $ACTION_PATH/generate-config.php "$PHPDOCMD_FILE" "$PHP_CLASSES_FILTERED_FILE" "$CLASS_ROOT_NAMESPACE" "$DOCS_PATH"
-        cat "$PHPDOCMD_FILE"
       shell: bash
 
     - name: Including documentation generator...
