@@ -22,7 +22,7 @@ jobs:
         uses: actions/checkout@v2
         
       - name: Install PHP
-        uses: shivammathur/setup-php@master
+        uses: shivammathur/setup-php@v2.2
         with:
           php-version: 8.1
           extensions: curl, gd, pdo_mysql, json, mbstring, pcre, session
@@ -31,10 +31,10 @@ jobs:
           tools: composer:v2
           
       - name: Install Composer dependencies (with dev)
-        run: composer install --no-progress --no-suggest --prefer-dist --optimize-autoloader       
+        run: composer install --no-progress --prefer-dist --optimize-autoloader
           
       - name: Generating documentation...
-        uses: impresscms-dev/generate-phpdocs-with-clean-phpdoc-md-action@v0.1.7
+        uses: impresscms-dev/generate-phpdocs-with-clean-phpdoc-md-action@v1.0.0
         with:
           class_root_namespace: ImpressCMS\
           included_classes: ImpressCMS\**
