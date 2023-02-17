@@ -20,27 +20,19 @@ runs:
   using: 'composite'
   steps:
     - name: Setting env variables...
-      run: |
-        GENERATOR_TMP_SUFIX=${{ github.sha }}-${{ github.run_id	}}-${{ github.github.run_attempt }}
-        GENERATOR_TMP_PATH="${{ runner.temp }}"
-        GENERATOR_TMP_FILES_PATH=$GENERATOR_TMP_PATH/files-$GENERATOR_TMP_SUFIX
-        echo "COPY_DATA_PATH=$GENERATOR_TMP_PATH/data-$GENERATOR_TMP_SUFIX" >> $GITHUB_ENV
-        echo "GENERATOR_TMP_FILES_PATH=$GENERATOR_TMP_FILES_PATH" >> $GITHUB_ENV
-        echo "RULES_FILE=$GENERATOR_TMP_FILES_PATH/filtering-rules.lst" >> $GITHUB_ENV
-        echo "PHP_CLASSES_ORIG_FILE=$GENERATOR_TMP_FILES_PATH/php-classes.original.lst" >> $GITHUB_ENV
-        echo "PHP_CLASSES_FILTERED_FILE=$GENERATOR_TMP_FILES_PATH/php-classes.filtered.lst" >> $GITHUB_ENV
-      shell: bash        
+      env:
+        GENERATOR_TMP_SUFIX: ${{ github.sha }}-${{ github.run_id }}-${{ github.github.run_attempt }}
+        GENERATOR_TMP_PATH: ${{ runner.temp }}
+        ACTION_BIN_PATH: ${{ github.action_path }}/bin
+      run: $ACTION_BIN_PATH/generate-env.sh "$GENERATOR_TMP_SUFIX" "$GENERATOR_TMP_PATH" "$ACTION_BIN_PATH" >> $GITHUB_ENV
+      shell: bash
   
     - name: Creating tmp folders
-      run: |
-        rm -rf ${{ env.COPY_DATA_PATH }} || true
-        mkdir -p ${{ env.COPY_DATA_PATH }}
-        rm -rf ${{ env.GENERATOR_TMP_FILES_PATH }} || true
-        mkdir -p ${{ env.GENERATOR_TMP_FILES_PATH }}
+      run: $ACTION_BIN_PATH/create-temp-folders.sh
       shell: bash
 
     - name: Copying current project to tmp folder...
-      run: cp -R ./* ${{ env.COPY_DATA_PATH }}/
+      run: $ACTION_BIN_PATH/copy-current-project-to-tmp-folder.sh
       shell: bash
 
     - name: Getting PHP class list...
@@ -64,24 +56,20 @@ runs:
 
     - name: Generating generator config...
       env:
-        ACTION_PATH: ${{ github.action_path }}
         PHPDOCMD_FILE: ${{ env.COPY_DATA_PATH }}/.phpdoc-md
         CLASS_ROOT_NAMESPACE: ${{ inputs.class_root_namespace }}
         DOCS_PATH: ${{ inputs.output_path }}
-      run: |
-        php $ACTION_PATH/generate-config.php "$PHPDOCMD_FILE" "$PHP_CLASSES_FILTERED_FILE" "$CLASS_ROOT_NAMESPACE" "$DOCS_PATH"
+      run: $ACTION_BIN_PATH/generate-config.php "$PHPDOCMD_FILE" "$PHP_CLASSES_FILTERED_FILE" "$CLASS_ROOT_NAMESPACE" "$DOCS_PATH"
       shell: bash
 
     - name: Including documentation generator...
-      run: composer require --no-plugins --ignore-platform-reqs --no-scripts --working-dir=${{ env.COPY_DATA_PATH }}/ --dev 'clean/phpdoc-md=^0.19'
+      run: $ACTION_BIN_PATH/add-composer-packages.sh
       shell: bash
 
     - name: Generating documentation...
-      run: composer exec --working-dir=${{ env.COPY_DATA_PATH }}/ phpdoc-md
+      run: $ACTION_BIN_PATH/generate-docs.sh
       shell: bash
 
     - name: Deleting tmp data...
-      run: |
-        rm -rf ${{ env.COPY_DATA_PATH }} || true
-        rm -rf ${{ env.GENERATOR_TMP_FILES_PATH }} || true
+      run: $ACTION_BIN_PATH/delete-temp-folders.sh
       shell: bash

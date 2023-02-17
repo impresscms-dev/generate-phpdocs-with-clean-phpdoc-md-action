@@ -1,0 +1,15 @@
+{
+    "name": "impresscms-dev/generate-phpdocs-with-clean-phpdoc-md-action",
+    "description": "Packages for same name action",
+    "type": "metapackage",
+    "require": {
+        "clean/phpdoc-md": "^0.19.3"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Raimondas Rimkevičius (aka MekDrop)",
+            "email": "github@mekdrop.name"
+        }
+    ]
+}
