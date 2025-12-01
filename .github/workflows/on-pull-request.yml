@@ -19,7 +19,7 @@ jobs:
           
     steps:
       - name: Checkouting code...
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Installing PHP...
         uses: shivammathur/setup-php@2.35.5
