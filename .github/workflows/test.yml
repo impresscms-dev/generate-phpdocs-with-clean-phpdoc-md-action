@@ -19,7 +19,7 @@ jobs:
 
     steps:
       - name: Checkouting code...
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
         with:
           sparse-checkout: composer.json
           sparse-checkout-cone-mode: false
@@ -36,7 +36,10 @@ jobs:
         run: |
           package_constraint=$(php -r 'echo json_decode(file_get_contents("composer.json"), true)["require"]["clean/phpdoc-md"];')
           php_constraint=$(composer show clean/phpdoc-md "$package_constraint" --all --format=json | php -r '$pkg = json_decode(stream_get_contents(STDIN), true); echo $pkg["requires"]["php"];')
-          php -r 'file_put_contents("composer.php-matrix.json", json_encode(["require" => ["php" => $argv[1]]], JSON_UNESCAPED_SLASHES));' "$php_constraint"
+          php -r 'file_put_contents("composer.php-matrix.json", json_encode(["require" => ["php" => $argv[1]]], JSON_UNESCAPED_SLASHES));' "${php_constraint}" 2>/dev/null
+          if [ ! -s composer.php-matrix.json ]; then
+            php -r 'file_put_contents("composer.php-matrix.json", json_encode(["require" => ["php" => "^8" ]], JSON_UNESCAPED_SLASHES));'
+          fi
 
       - name: Generating PHP matrix...
         id: php-matrix
@@ -58,7 +61,7 @@ jobs:
 
     steps:
       - name: Checkouting code...
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Detecting Composer major...
         id: composer-major
